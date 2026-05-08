@@ -1,4 +1,4 @@
-Walmart Retail Insight Optimization
+<h2>Walmart Retail Insight Optimization</h2>
 
 A professional SQL portfolio project focused on analyzing large-scale Walmart retail data using advanced MySQL techniques. This project demonstrates business intelligence, customer analytics, inventory optimization, and KPI reporting through real-world SQL use cases.
 
