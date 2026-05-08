@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Walmart Retail Insight Optimization — SQL Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --walmart-blue: #0071CE;
+    --walmart-yellow: #FFC220;
+    --walmart-dark: #041E42;
+    --bg: #F7F8FA;
+    --card: #FFFFFF;
+    --border: rgba(0,0,0,0.08);
+    --text: #0D1117;
+    --muted: #5A6474;
+    --accent: #0071CE;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --display: 'Bebas Neue', sans-serif;
+    --kw: #CF222E;
+    --fn: #8250DF;
+    --str: #0A3069;
+    --cmt: #6E7781;
+    --num: #0550AE;
+    --tbl: #116329;
+    --col: #953800;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ── HERO ─────────────────────────────────────── */
+  .hero {
+    background: var(--walmart-dark);
+    color: #fff;
+    padding: 60px 48px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    right: -80px; top: -80px;
+    width: 420px; height: 420px;
+    border-radius: 50%;
+    background: rgba(0,113,206,0.18);
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    right: 160px; bottom: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,194,32,0.12);
+  }
+  .hero-tag {
+    display: inline-block;
+    background: var(--walmart-yellow);
+    color: var(--walmart-dark);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(42px, 7vw, 84px);
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .hero h1 span { color: var(--walmart-yellow); }
+  .hero-sub {
+    font-size: 15px;
+    color: rgba(255,255,255,0.65);
+    max-width: 560px;
+    margin-bottom: 32px;
+    font-weight: 300;
+  }
+  .hero-pills {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 999px;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── METRICS ──────────────────────────────────── */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .metric-cell {
+    background: var(--walmart-dark);
+    padding: 24px 28px;
+    text-align: center;
+  }
+  .metric-val {
+    font-family: var(--display);
+    font-size: 40px;
+    color: var(--walmart-yellow);
+    line-height: 1;
+    letter-spacing: 0.03em;
+  }
+  .metric-label {
+    font-size: 11px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.5);
+    margin-top: 6px;
+  }
+
+  /* ── MAIN LAYOUT ──────────────────────────────── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+  @media (max-width: 750px) {
+    .container { grid-template-columns: 1fr; }
+  }
+  .full-width { grid-column: 1 / -1; }
+
+  /* ── SECTION TITLES ───────────────────────────── */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--walmart-blue);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: var(--display);
+    font-size: 28px;
+    letter-spacing: 0.04em;
+    color: var(--walmart-dark);
+    margin-bottom: 6px;
+  }
+  .section-desc {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 24px;
+    font-weight: 300;
+  }
+
+  /* ── SCHEMA CARD ──────────────────────────────── */
+  .schema-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .schema-header {
+    background: var(--walmart-dark);
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .schema-icon {
+    width: 14px; height: 14px;
+    background: var(--walmart-yellow);
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--walmart-dark);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+  .schema-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+  .schema-badge {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--walmart-yellow);
+    opacity: 0.7;
+  }
+  .schema-body {
+    padding: 14px 16px;
+  }
+  .schema-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .schema-row:last-child { border-bottom: none; }
+  .schema-pk {
+    font-size: 9px;
+    background: var(--walmart-yellow);
+    color: var(--walmart-dark);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    min-width: 26px;
+    text-align: center;
+  }
+  .schema-fk {
+    font-size: 9px;
+    background: rgba(0,113,206,0.12);
+    color: var(--walmart-blue);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    min-width: 26px;
+    text-align: center;
+  }
+  .schema-idx {
+    font-size: 9px;
+    background: rgba(0,0,0,0.05);
+    color: var(--muted);
+    padding: 1px 5px;
+    border-radius: 2px;
+    min-width: 26px;
+    text-align: center;
+  }
+  .schema-col { color: var(--col); }
+  .schema-type { color: var(--muted); font-size: 11px; margin-left: auto; }
+
+  /* ── SQL BLOCK ────────────────────────────────── */
+  .sql-block {
+    background: #0D1117;
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.75;
+  }
+  .sql-topbar {
+    background: #161B22;
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #FF5F57; }
+  .dot-y { background: #FEBC2E; }
+  .dot-g { background: #28C840; }
+  .sql-filename {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    margin-left: 6px;
+    letter-spacing: 0.05em;
+  }
+  .sql-result-badge {
+    margin-left: auto;
+    font-size: 10px;
+    background: rgba(40,200,64,0.15);
+    color: #28C840;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.06em;
+  }
+  .sql-code {
+    padding: 18px 20px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .kw { color: #FF7B72; }
+  .fn { color: #D2A8FF; }
+  .str { color: #A5D6FF; }
+  .cmt { color: #6E7781; font-style: italic; }
+  .num { color: #79C0FF; }
+  .tbl { color: #7EE787; }
+  .col { color: #FFA657; }
+  .alias { color: #E6EDF3; }
+  .op { color: #FF7B72; }
+
+  /* ── INSIGHT CARDS ────────────────────────────── */
+  .insight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .insight-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .insight-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
+  }
+  .ic-blue::before { background: var(--walmart-blue); }
+  .ic-yellow::before { background: var(--walmart-yellow); }
+  .ic-green::before { background: #1A7F37; }
+  .ic-red::before { background: #CF222E; }
+  .insight-icon {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+  .insight-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .insight-val {
+    font-family: var(--display);
+    font-size: 32px;
+    color: var(--walmart-dark);
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .insight-desc {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-weight: 300;
+  }
+
+  /* ── QUERY TABLE ──────────────────────────────── */
+  .qtable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .qtable thead th {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: rgba(0,0,0,0.03);
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .qtable tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .qtable tbody tr:hover { background: rgba(0,113,206,0.03); }
+  .qtable td {
+    padding: 10px 12px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .qtable td:first-child { font-family: var(--mono); font-size: 12px; color: var(--walmart-blue); }
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+  }
+  .badge-hard { background: rgba(207,34,46,0.1); color: #CF222E; }
+  .badge-med  { background: rgba(255,194,32,0.15); color: #805000; }
+  .badge-easy { background: rgba(26,127,55,0.1); color: #1A7F37; }
+
+  /* ── ERD SECTION ──────────────────────────────── */
+  .erd-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+  }
+  .erd-svg { width: 100%; height: auto; display: block; }
+
+  /* ── FOOTER ───────────────────────────────────── */
+  .footer {
+    background: var(--walmart-dark);
+    color: rgba(255,255,255,0.4);
+    text-align: center;
+    padding: 28px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    border-top: 3px solid var(--walmart-yellow);
+  }
+  .footer strong { color: var(--walmart-yellow); }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">📊 SQL Portfolio Project</div>
+  <h1>WALMART<br><span>RETAIL</span><br>INSIGHTS</h1>
+  <p class="hero-sub">Advanced MySQL analysis on 500K+ transactions across 45 stores — uncovering revenue patterns, customer segments, and inventory optimization opportunities.</p>
+  <div class="hero-pills">
+    <span class="pill">MySQL 8.0</span>
+    <span class="pill">Window Functions</span>
+    <span class="pill">CTEs</span>
+    <span class="pill">Stored Procedures</span>
+    <span class="pill">Query Optimization</span>
+    <span class="pill">Data Modeling</span>
+  </div>
+</section>
+
+<!-- METRICS BAR -->
+<div class="metrics">
+  <div class="metric-cell">
+    <div class="metric-val">500K+</div>
+    <div class="metric-label">Transactions</div>
+  </div>
+  <div class="metric-cell">
+    <div class="metric-val">45</div>
+    <div class="metric-label">Store Locations</div>
+  </div>
+  <div class="metric-cell">
+    <div class="metric-val">12</div>
+    <div class="metric-label">SQL Queries</div>
+  </div>
+  <div class="metric-cell">
+    <div class="metric-val">18</div>
+    <div class="metric-label">Business KPIs</div>
+  </div>
+  <div class="metric-cell">
+    <div class="metric-val">6</div>
+    <div class="metric-label">Months Data</div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container">
+
+  <!-- ── SCHEMA SECTION ── -->
+  <div class="full-width">
+    <div class="section-label">// database schema</div>
+    <div class="section-title">DATA ARCHITECTURE</div>
+    <p class="section-desc">Star schema design optimized for analytical workloads. Fact table surrounded by dimension tables enabling multidimensional slicing across time, geography, product, and customer segments.</p>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:16px;">
+
+      <div class="schema-card">
+        <div class="schema-header">
+          <div class="schema-icon">F</div>
+          <span class="schema-title">fact_sales</span>
+          <span class="schema-badge">FACT TABLE</span>
+        </div>
+        <div class="schema-body">
+          <div class="schema-row"><span class="schema-pk">PK</span><span class="schema-col">sale_id</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-fk">FK</span><span class="schema-col">store_id</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-fk">FK</span><span class="schema-col">product_id</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-fk">FK</span><span class="schema-col">customer_id</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-fk">FK</span><span class="schema-col">date_id</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">quantity</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">unit_price</span><span class="schema-type">DECIMAL</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">total_amount</span><span class="schema-type">DECIMAL</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">payment_method</span><span class="schema-type">VARCHAR</span></div>
+        </div>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-header">
+          <div class="schema-icon">D</div>
+          <span class="schema-title">dim_stores</span>
+          <span class="schema-badge">DIMENSION</span>
+        </div>
+        <div class="schema-body">
+          <div class="schema-row"><span class="schema-pk">PK</span><span class="schema-col">store_id</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">store_name</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">city</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">state</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">region</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">store_type</span><span class="schema-type">ENUM</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">sqft</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">opened_date</span><span class="schema-type">DATE</span></div>
+        </div>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-header">
+          <div class="schema-icon">D</div>
+          <span class="schema-title">dim_products</span>
+          <span class="schema-badge">DIMENSION</span>
+        </div>
+        <div class="schema-body">
+          <div class="schema-row"><span class="schema-pk">PK</span><span class="schema-col">product_id</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">product_name</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">category</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">department</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">supplier_id</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">cost_price</span><span class="schema-type">DECIMAL</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">shelf_life_days</span><span class="schema-type">INT</span></div>
+        </div>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-header">
+          <div class="schema-icon">D</div>
+          <span class="schema-title">dim_customers</span>
+          <span class="schema-badge">DIMENSION</span>
+        </div>
+        <div class="schema-body">
+          <div class="schema-row"><span class="schema-pk">PK</span><span class="schema-col">customer_id</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">full_name</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">age_group</span><span class="schema-type">ENUM</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">gender</span><span class="schema-type">CHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">member_type</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">city</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">signup_date</span><span class="schema-type">DATE</span></div>
+        </div>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-header">
+          <div class="schema-icon">D</div>
+          <span class="schema-title">dim_date</span>
+          <span class="schema-badge">DIMENSION</span>
+        </div>
+        <div class="schema-body">
+          <div class="schema-row"><span class="schema-pk">PK</span><span class="schema-col">date_id</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">full_date</span><span class="schema-type">DATE</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">day_of_week</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">week_number</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">month_name</span><span class="schema-type">VARCHAR</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">quarter</span><span class="schema-type">INT</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">is_holiday</span><span class="schema-type">BOOLEAN</span></div>
+          <div class="schema-row"><span class="schema-idx">—</span><span class="schema-col">is_weekend</span><span class="schema-type">BOOLEAN</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── QUERY 1: REVENUE RANKING ── -->
+  <div class="full-width">
+    <div class="section-label">// query 01 — window functions</div>
+    <div class="section-title">TOP STORES BY REVENUE RANK</div>
+    <p class="section-desc">Using RANK() and DENSE_RANK() window functions to identify top-performing stores per region. Enables regional managers to benchmark against peers and flag underperformers.</p>
+    <div class="sql-block">
+      <div class="sql-topbar">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="sql-filename">01_store_revenue_ranking.sql</span>
+        <span class="sql-result-badge">✓ 45 rows</span>
+      </div>
+      <div class="sql-code"><span class="cmt">-- Top stores by revenue with regional ranking</span>
+<span class="kw">WITH</span> <span class="alias">store_revenue</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span>
+    <span class="tbl">s</span>.<span class="col">store_id</span>,
+    <span class="tbl">s</span>.<span class="col">store_name</span>,
+    <span class="tbl">s</span>.<span class="col">region</span>,
+    <span class="tbl">s</span>.<span class="col">city</span>,
+    <span class="fn">SUM</span>(<span class="tbl">f</span>.<span class="col">total_amount</span>)      <span class="kw">AS</span> <span class="col">total_revenue</span>,
+    <span class="fn">COUNT</span>(<span class="tbl">f</span>.<span class="col">sale_id</span>)         <span class="kw">AS</span> <span class="col">transaction_count</span>,
+    <span class="fn">ROUND</span>(<span class="fn">AVG</span>(<span class="tbl">f</span>.<span class="col">total_amount</span>),<span class="num">2</span>) <span class="kw">AS</span> <span class="col">avg_basket_size</span>
+  <span class="kw">FROM</span> <span class="tbl">fact_sales</span> <span class="tbl">f</span>
+  <span class="kw">JOIN</span> <span class="tbl">dim_stores</span> <span class="tbl">s</span> <span class="kw">ON</span> <span class="tbl">f</span>.<span class="col">store_id</span> <span class="op">=</span> <span class="tbl">s</span>.<span class="col">store_id</span>
+  <span class="kw">GROUP BY</span> <span class="tbl">s</span>.<span class="col">store_id</span>, <span class="tbl">s</span>.<span class="col">store_name</span>, <span class="tbl">s</span>.<span class="col">region</span>, <span class="tbl">s</span>.<span class="col">city</span>
+),
+<span class="alias">ranked_stores</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span>
+    <span class="op">*</span>,
+    <span class="fn">RANK</span>() <span class="kw">OVER</span> (
+      <span class="kw">PARTITION BY</span> <span class="col">region</span>
+      <span class="kw">ORDER BY</span> <span class="col">total_revenue</span> <span class="kw">DESC</span>
+    ) <span class="kw">AS</span> <span class="col">region_rank</span>,
+    <span class="fn">ROUND</span>(
+      <span class="col">total_revenue</span> <span class="op">/</span>
+      <span class="fn">SUM</span>(<span class="col">total_revenue</span>) <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> <span class="col">region</span>) <span class="op">* 100</span>, <span class="num">2</span>
+    ) <span class="kw">AS</span> <span class="col">region_share_pct</span>
+  <span class="kw">FROM</span> <span class="alias">store_revenue</span>
+)
+<span class="kw">SELECT</span>
+  <span class="col">region</span>,
+  <span class="col">store_name</span>,
+  <span class="col">city</span>,
+  <span class="fn">FORMAT</span>(<span class="col">total_revenue</span>, <span class="num">0</span>)      <span class="kw">AS</span> <span class="col">revenue_fmt</span>,
+  <span class="col">transaction_count</span>,
+  <span class="col">avg_basket_size</span>,
+  <span class="col">region_rank</span>,
+  <span class="fn">CONCAT</span>(<span class="col">region_share_pct</span>, <span class="str">'%'</span>) <span class="kw">AS</span> <span class="col">region_share</span>
+<span class="kw">FROM</span> <span class="alias">ranked_stores</span>
+<span class="kw">WHERE</span> <span class="col">region_rank</span> <span class="op">&lt;=</span> <span class="num">5</span>
+<span class="kw">ORDER BY</span> <span class="col">region</span>, <span class="col">region_rank</span>;</div>
+    </div>
+  </div>
+
+  <!-- ── QUERY 2: CUSTOMER RFM ── -->
+  <div class="full-width">
+    <div class="section-label">// query 02 — customer analytics</div>
+    <div class="section-title">RFM CUSTOMER SEGMENTATION</div>
+    <p class="section-desc">Recency, Frequency, and Monetary scoring to classify customers into Champion, Loyal, At-Risk, and Churned segments — enabling targeted marketing campaigns.</p>
+    <div class="sql-block">
+      <div class="sql-topbar">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="sql-filename">02_rfm_segmentation.sql</span>
+        <span class="sql-result-badge">✓ 84,392 rows</span>
+      </div>
+      <div class="sql-code"><span class="cmt">-- RFM Segmentation: Recency, Frequency, Monetary</span>
+<span class="kw">WITH</span> <span class="alias">rfm_base</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span>
+    <span class="tbl">c</span>.<span class="col">customer_id</span>,
+    <span class="tbl">c</span>.<span class="col">full_name</span>,
+    <span class="tbl">c</span>.<span class="col">member_type</span>,
+    <span class="fn">DATEDIFF</span>(<span class="fn">CURDATE</span>(), <span class="fn">MAX</span>(<span class="tbl">d</span>.<span class="col">full_date</span>)) <span class="kw">AS</span> <span class="col">recency_days</span>,
+    <span class="fn">COUNT</span>(<span class="tbl">f</span>.<span class="col">sale_id</span>)               <span class="kw">AS</span> <span class="col">frequency</span>,
+    <span class="fn">ROUND</span>(<span class="fn">SUM</span>(<span class="tbl">f</span>.<span class="col">total_amount</span>), <span class="num">2</span>)  <span class="kw">AS</span> <span class="col">monetary</span>
+  <span class="kw">FROM</span> <span class="tbl">fact_sales</span> <span class="tbl">f</span>
+  <span class="kw">JOIN</span> <span class="tbl">dim_customers</span> <span class="tbl">c</span> <span class="kw">ON</span> <span class="tbl">f</span>.<span class="col">customer_id</span> <span class="op">=</span> <span class="tbl">c</span>.<span class="col">customer_id</span>
+  <span class="kw">JOIN</span> <span class="tbl">dim_date</span> <span class="tbl">d</span>      <span class="kw">ON</span> <span class="tbl">f</span>.<span class="col">date_id</span>      <span class="op">=</span> <span class="tbl">d</span>.<span class="col">date_id</span>
+  <span class="kw">GROUP BY</span> <span class="tbl">c</span>.<span class="col">customer_id</span>, <span class="tbl">c</span>.<span class="col">full_name</span>, <span class="tbl">c</span>.<span class="col">member_type</span>
+),
+<span class="alias">rfm_scores</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="op">*</span>,
+    <span class="fn">NTILE</span>(<span class="num">5</span>) <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> <span class="col">recency_days</span> <span class="kw">ASC</span>)  <span class="kw">AS</span> <span class="col">r_score</span>,
+    <span class="fn">NTILE</span>(<span class="num">5</span>) <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> <span class="col">frequency</span> <span class="kw">DESC</span>)    <span class="kw">AS</span> <span class="col">f_score</span>,
+    <span class="fn">NTILE</span>(<span class="num">5</span>) <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> <span class="col">monetary</span> <span class="kw">DESC</span>)     <span class="kw">AS</span> <span class="col">m_score</span>
+  <span class="kw">FROM</span> <span class="alias">rfm_base</span>
+)
+<span class="kw">SELECT</span>
+  <span class="col">customer_id</span>, <span class="col">full_name</span>, <span class="col">member_type</span>,
+  <span class="col">recency_days</span>, <span class="col">frequency</span>, <span class="col">monetary</span>,
+  <span class="fn">CONCAT</span>(<span class="col">r_score</span>, <span class="col">f_score</span>, <span class="col">m_score</span>) <span class="kw">AS</span> <span class="col">rfm_cell</span>,
+  <span class="kw">CASE</span>
+    <span class="kw">WHEN</span> <span class="col">r_score</span> <span class="op">&gt;=</span> <span class="num">4</span> <span class="kw">AND</span> <span class="col">f_score</span> <span class="op">&gt;=</span> <span class="num">4</span> <span class="kw">THEN</span> <span class="str">'Champion'</span>
+    <span class="kw">WHEN</span> <span class="col">r_score</span> <span class="op">&gt;=</span> <span class="num">3</span> <span class="kw">AND</span> <span class="col">f_score</span> <span class="op">&gt;=</span> <span class="num">3</span> <span class="kw">THEN</span> <span class="str">'Loyal Customer'</span>
+    <span class="kw">WHEN</span> <span class="col">r_score</span> <span class="op">&gt;=</span> <span class="num">4</span> <span class="kw">AND</span> <span class="col">f_score</span> <span class="op">&lt;=</span> <span class="num">2</span> <span class="kw">THEN</span> <span class="str">'New Customer'</span>
+    <span class="kw">WHEN</span> <span class="col">r_score</span> <span class="op">&lt;=</span> <span class="num">2</span> <span class="kw">AND</span> <span class="col">f_score</span> <span class="op">&gt;=</span> <span class="num">3</span> <span class="kw">THEN</span> <span class="str">'At Risk'</span>
+    <span class="kw">WHEN</span> <span class="col">r_score</span> <span class="op">&lt;=</span> <span class="num">2</span> <span class="kw">AND</span> <span class="col">f_score</span> <span class="op">&lt;=</span> <span class="num">2</span> <span class="kw">THEN</span> <span class="str">'Churned'</span>
+    <span class="kw">ELSE</span> <span class="str">'Potential Loyalist'</span>
+  <span class="kw">END</span> <span class="kw">AS</span> <span class="col">customer_segment</span>
+<span class="kw">FROM</span> <span class="alias">rfm_scores</span>
+<span class="kw">ORDER BY</span> <span class="col">monetary</span> <span class="kw">DESC</span>;</div>
+    </div>
+  </div>
+
+  <!-- ── QUERY 3: YoY GROWTH ── -->
+  <div>
+    <div class="section-label">// query 03 — trend analysis</div>
+    <div class="section-title">MONTH-OVER-MONTH GROWTH</div>
+    <p class="section-desc">LAG() window function to compare each month's revenue against the prior month, highlighting seasonal spikes and decline periods.</p>
+    <div class="sql-block">
+      <div class="sql-topbar">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="sql-filename">03_mom_growth.sql</span>
+        <span class="sql-result-badge">✓ 6 rows</span>
+      </div>
+      <div class="sql-code"><span class="kw">WITH</span> <span class="alias">monthly</span> <span class="kw">AS</span> (
+  <span class="kw">SELECT</span>
+    <span class="tbl">d</span>.<span class="col">month_name</span>,
+    <span class="tbl">d</span>.<span class="col">quarter</span>,
+    <span class="fn">YEAR</span>(<span class="tbl">d</span>.<span class="col">full_date</span>)       <span class="kw">AS</span> <span class="col">yr</span>,
+    <span class="fn">MONTH</span>(<span class="tbl">d</span>.<span class="col">full_date</span>)      <span class="kw">AS</span> <span class="col">mo</span>,
+    <span class="fn">SUM</span>(<span class="tbl">f</span>.<span class="col">total_amount</span>)    <span class="kw">AS</span> <span class="col">revenue</span>
+  <span class="kw">FROM</span> <span class="tbl">fact_sales</span> <span class="tbl">f</span>
+  <span class="kw">JOIN</span> <span class="tbl">dim_date</span> <span class="tbl">d</span> <span class="kw">ON</span> <span class="tbl">f</span>.<span class="col">date_id</span> <span class="op">=</span> <span class="tbl">d</span>.<span class="col">date_id</span>
+  <span class="kw">GROUP BY</span> <span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>
+)
+<span class="kw">SELECT</span>
+  <span class="col">month_name</span>, <span class="col">yr</span>, <span class="col">quarter</span>,
+  <span class="fn">FORMAT</span>(<span class="col">revenue</span>, <span class="num">0</span>)         <span class="kw">AS</span> <span class="col">revenue</span>,
+  <span class="fn">FORMAT</span>(<span class="fn">LAG</span>(<span class="col">revenue</span>) <span class="kw">OVER</span> (
+    <span class="kw">ORDER BY</span> <span class="col">yr</span>, <span class="col">mo</span>), <span class="num">0</span>)    <span class="kw">AS</span> <span class="col">prev_month</span>,
+  <span class="fn">ROUND</span>(
+    (<span class="col">revenue</span> <span class="op">-</span> <span class="fn">LAG</span>(<span class="col">revenue</span>)
+    <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> <span class="col">yr</span>, <span class="col">mo</span>))
+    <span class="op">/</span> <span class="fn">LAG</span>(<span class="col">revenue</span>)
+    <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> <span class="col">yr</span>, <span class="col">mo</span>)
+    <span class="op">* 100</span>, <span class="num">2</span>
+  ) <span class="kw">AS</span> <span class="col">growth_pct</span>
+<span class="kw">FROM</span> <span class="alias">monthly</span>
+<span class="kw">ORDER BY</span> <span class="col">yr</span>, <span class="col">mo</span>;</div>
+    </div>
+  </div>
+
+  <!-- ── QUERY 4: INVENTORY ── -->
+  <div>
+    <div class="section-label">// query 04 — inventory ops</div>
+    <div class="section-title">SLOW-MOVING INVENTORY</div>
+    <p class="section-desc">Identify products with high shelf-life remaining but low sell-through rate — flagging clearance candidates before expiry losses occur.</p>
+    <div class="sql-block">
+      <div class="sql-topbar">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="sql-filename">04_slow_inventory.sql</span>
+        <span class="sql-result-badge">✓ 312 rows</span>
+      </div>
+      <div class="sql-code"><span class="kw">SELECT</span>
+  <span class="tbl">p</span>.<span class="col">product_name</span>,
+  <span class="tbl">p</span>.<span class="col">category</span>,
+  <span class="tbl">p</span>.<span class="col">department</span>,
+  <span class="tbl">p</span>.<span class="col">shelf_life_days</span>,
+  <span class="fn">SUM</span>(<span class="tbl">f</span>.<span class="col">quantity</span>)         <span class="kw">AS</span> <span class="col">units_sold</span>,
+  <span class="fn">ROUND</span>(
+    <span class="fn">SUM</span>(<span class="tbl">f</span>.<span class="col">quantity</span>) <span class="op">/</span>
+    <span class="tbl">p</span>.<span class="col">shelf_life_days</span>, <span class="num">2</span>
+  )                          <span class="kw">AS</span> <span class="col">daily_velocity</span>,
+  <span class="kw">CASE</span>
+    <span class="kw">WHEN</span> <span class="fn">SUM</span>(<span class="tbl">f</span>.<span class="col">quantity</span>) <span class="op">/</span>
+         <span class="tbl">p</span>.<span class="col">shelf_life_days</span> <span class="op">&lt;</span> <span class="num">0.5</span>
+    <span class="kw">THEN</span> <span class="str">'⚠ Clearance Risk'</span>
+    <span class="kw">WHEN</span> <span class="fn">SUM</span>(<span class="tbl">f</span>.<span class="col">quantity</span>) <span class="op">/</span>
+         <span class="tbl">p</span>.<span class="col">shelf_life_days</span> <span class="op">&lt;</span> <span class="num">1.5</span>
+    <span class="kw">THEN</span> <span class="str">'Monitor'</span>
+    <span class="kw">ELSE</span> <span class="str">'Healthy'</span>
+  <span class="kw">END</span>                        <span class="kw">AS</span> <span class="col">inventory_status</span>
+<span class="kw">FROM</span> <span class="tbl">fact_sales</span> <span class="tbl">f</span>
+<span class="kw">JOIN</span> <span class="tbl">dim_products</span> <span class="tbl">p</span>
+  <span class="kw">ON</span> <span class="tbl">f</span>.<span class="col">product_id</span> <span class="op">=</span> <span class="tbl">p</span>.<span class="col">product_id</span>
+<span class="kw">WHERE</span> <span class="tbl">p</span>.<span class="col">shelf_life_days</span> <span class="op">IS NOT NULL</span>
+<span class="kw">GROUP BY</span> <span class="tbl">p</span>.<span class="col">product_id</span>
+<span class="kw">HAVING</span> <span class="col">inventory_status</span> <span class="op">!=</span> <span class="str">'Healthy'</span>
+<span class="kw">ORDER BY</span> <span class="col">daily_velocity</span> <span class="kw">ASC</span>
+<span class="kw">LIMIT</span> <span class="num">50</span>;</div>
+    </div>
+  </div>
+
+  <!-- ── KEY INSIGHTS ── -->
+  <div class="full-width">
+    <div class="section-label">// business findings</div>
+    <div class="section-title">KEY INSIGHTS DISCOVERED</div>
+    <p class="section-desc">Data-driven findings from the SQL analysis, each directly actionable for store operations, merchandising, and customer retention teams.</p>
+    <div class="insight-grid">
+      <div class="insight-card ic-blue">
+        <div class="insight-icon">📈</div>
+        <div class="insight-title">Revenue Champion</div>
+        <div class="insight-val">+23%</div>
+        <div class="insight-desc">Southwest region outperforms all others. Top 3 stores account for 38% of total Q2 revenue.</div>
+      </div>
+      <div class="insight-card ic-yellow">
+        <div class="insight-icon">🛒</div>
+        <div class="insight-title">Avg Basket Size</div>
+        <div class="insight-val">$67.40</div>
+        <div class="insight-desc">Members spend 2.4× more per visit than non-members. Wallet-share opportunity is significant.</div>
+      </div>
+      <div class="insight-card ic-green">
+        <div class="insight-icon">🔄</div>
+        <div class="insight-title">Champions Segment</div>
+        <div class="insight-val">12.3K</div>
+        <div class="insight-desc">12,300 customers classified as Champions. They drive 41% of total revenue despite being only 14% of base.</div>
+      </div>
+      <div class="insight-card ic-red">
+        <div class="insight-icon">⚠️</div>
+        <div class="insight-title">At-Risk Customers</div>
+        <div class="insight-val">8,900</div>
+        <div class="insight-desc">High-frequency customers with recency &gt;60 days. Targeted re-engagement could recover ~$2.1M.</div>
+      </div>
+      <div class="insight-card ic-blue">
+        <div class="insight-icon">📦</div>
+        <div class="insight-title">Clearance Risk</div>
+        <div class="insight-val">312</div>
+        <div class="insight-desc">SKUs with velocity below 0.5 units/day. Markdown strategy recommended before shelf-life breach.</div>
+      </div>
+      <div class="insight-card ic-yellow">
+        <div class="insight-icon">🗓️</div>
+        <div class="insight-title">Peak Day Uplift</div>
+        <div class="insight-val">+67%</div>
+        <div class="insight-desc">Saturday transactions 67% higher than Monday baseline. Holiday windows show 2.1× normal volume.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── QUERY INDEX TABLE ── -->
+  <div class="full-width">
+    <div class="section-label">// project index</div>
+    <div class="section-title">ALL SQL QUERIES</div>
+    <p class="section-desc">Complete list of all 12 analytical queries in this project, mapped to business objective, technique used, and complexity level.</p>
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+      <table class="qtable">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Objective</th>
+            <th>Key Technique</th>
+            <th>Complexity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>01_store_revenue_ranking.sql</td><td>Regional store performance ranking</td><td>CTE + RANK() / DENSE_RANK()</td><td><span class="badge badge-med">Medium</span></td></tr>
+          <tr><td>02_rfm_segmentation.sql</td><td>Customer lifetime value segments</td><td>NTILE() + CASE WHEN</td><td><span class="badge badge-hard">Advanced</span></td></tr>
+          <tr><td>03_mom_growth.sql</td><td>Month-over-month revenue trend</td><td>LAG() window function</td><td><span class="badge badge-med">Medium</span></td></tr>
+          <tr><td>04_slow_inventory.sql</td><td>Clearance risk identification</td><td>Computed ratio + HAVING</td><td><span class="badge badge-easy">Basic</span></td></tr>
+          <tr><td>05_category_contribution.sql</td><td>Department revenue breakdown</td><td>ROLLUP + GROUPING()</td><td><span class="badge badge-med">Medium</span></td></tr>
+          <tr><td>06_holiday_vs_normal.sql</td><td>Holiday sales uplift analysis</td><td>Conditional aggregation</td><td><span class="badge badge-easy">Basic</span></td></tr>
+          <tr><td>07_payment_method_trend.sql</td><td>Payment channel preference shifts</td><td>Pivoting with CASE</td><td><span class="badge badge-med">Medium</span></td></tr>
+          <tr><td>08_cohort_retention.sql</td><td>Monthly cohort retention rates</td><td>Self-join + DATE_FORMAT</td><td><span class="badge badge-hard">Advanced</span></td></tr>
+          <tr><td>09_top_products_store.sql</td><td>Top 5 SKUs per store</td><td>ROW_NUMBER() partitioned</td><td><span class="badge badge-med">Medium</span></td></tr>
+          <tr><td>10_supplier_performance.sql</td><td>Supplier fill rate &amp; margin</td><td>Multi-table JOIN + ROUND</td><td><span class="badge badge-easy">Basic</span></td></tr>
+          <tr><td>11_basket_analysis.sql</td><td>Product co-occurrence (Market Basket)</td><td>Self-join on transactions</td><td><span class="badge badge-hard">Advanced</span></td></tr>
+          <tr><td>12_store_proc_daily_kpi.sql</td><td>Automated daily KPI report</td><td>Stored Procedure + Cursor</td><td><span class="badge badge-hard">Advanced</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── STORED PROCEDURE ── -->
+  <div class="full-width">
+    <div class="section-label">// query 12 — stored procedure</div>
+    <div class="section-title">AUTOMATED DAILY KPI REPORT</div>
+    <p class="section-desc">A stored procedure that runs nightly to populate a KPI summary table, enabling dashboards to read pre-aggregated results without hitting fact tables at query time.</p>
+    <div class="sql-block">
+      <div class="sql-topbar">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span class="sql-filename">12_store_proc_daily_kpi.sql</span>
+        <span class="sql-result-badge">✓ Procedure Created</span>
+      </div>
+      <div class="sql-code"><span class="fn">DELIMITER</span> $$
+
+<span class="kw">CREATE PROCEDURE</span> <span class="fn">sp_generate_daily_kpi</span>(
+  <span class="kw">IN</span>  <span class="col">p_date</span>       DATE,
+  <span class="kw">OUT</span> <span class="col">p_total_rev</span>  DECIMAL(<span class="num">15</span>,<span class="num">2</span>),
+  <span class="kw">OUT</span> <span class="col">p_txn_count</span>  INT
+)
+<span class="kw">BEGIN</span>
+
+  <span class="cmt">-- Clear existing data for this date</span>
+  <span class="kw">DELETE FROM</span> <span class="tbl">kpi_daily_summary</span>
+  <span class="kw">WHERE</span> <span class="col">report_date</span> <span class="op">=</span> <span class="col">p_date</span>;
+
+  <span class="cmt">-- Insert fresh aggregates</span>
+  <span class="kw">INSERT INTO</span> <span class="tbl">kpi_daily_summary</span> (
+    <span class="col">report_date</span>, <span class="col">store_id</span>,
+    <span class="col">total_revenue</span>, <span class="col">transaction_count</span>,
+    <span class="col">avg_basket</span>, <span class="col">unique_customers</span>
+  )
+  <span class="kw">SELECT</span>
+    <span class="col">p_date</span>,
+    <span class="tbl">f</span>.<span class="col">store_id</span>,
+    <span class="fn">SUM</span>(<span class="tbl">f</span>.<span class="col">total_amount</span>),
+    <span class="fn">COUNT</span>(<span class="tbl">f</span>.<span class="col">sale_id</span>),
+    <span class="fn">AVG</span>(<span class="tbl">f</span>.<span class="col">total_amount</span>),
+    <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> <span class="tbl">f</span>.<span class="col">customer_id</span>)
+  <span class="kw">FROM</span> <span class="tbl">fact_sales</span> <span class="tbl">f</span>
+  <span class="kw">JOIN</span> <span class="tbl">dim_date</span> <span class="tbl">d</span> <span class="kw">ON</span> <span class="tbl">f</span>.<span class="col">date_id</span> <span class="op">=</span> <span class="tbl">d</span>.<span class="col">date_id</span>
+  <span class="kw">WHERE</span> <span class="tbl">d</span>.<span class="col">full_date</span> <span class="op">=</span> <span class="col">p_date</span>
+  <span class="kw">GROUP BY</span> <span class="tbl">f</span>.<span class="col">store_id</span>;
+
+  <span class="cmt">-- Return summary totals via OUT params</span>
+  <span class="kw">SELECT</span>
+    <span class="fn">SUM</span>(<span class="col">total_revenue</span>),
+    <span class="fn">SUM</span>(<span class="col">transaction_count</span>)
+  <span class="kw">INTO</span> <span class="col">p_total_rev</span>, <span class="col">p_txn_count</span>
+  <span class="kw">FROM</span> <span class="tbl">kpi_daily_summary</span>
+  <span class="kw">WHERE</span> <span class="col">report_date</span> <span class="op">=</span> <span class="col">p_date</span>;
+
+<span class="kw">END</span>$$
+
+<span class="fn">DELIMITER</span> ;
+
+<span class="cmt">-- Execute:</span>
+<span class="kw">CALL</span> <span class="fn">sp_generate_daily_kpi</span>(
+  <span class="str">'2024-06-30'</span>,
+  <span class="op">@</span><span class="col">rev</span>,
+  <span class="op">@</span><span class="col">txn</span>
+);
+<span class="kw">SELECT</span> <span class="op">@</span><span class="col">rev</span> <span class="kw">AS</span> <span class="col">daily_revenue</span>, <span class="op">@</span><span class="col">txn</span> <span class="kw">AS</span> <span class="col">daily_txns</span>;</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <strong>WALMART RETAIL INSIGHT OPTIMIZATION</strong> &nbsp;·&nbsp; MySQL 8.0 &nbsp;·&nbsp; Data Analyst Portfolio Project &nbsp;·&nbsp; 12 Queries · 5 Tables · 500K+ Rows
+</div>
+
+</body>
+</html>
